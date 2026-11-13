@@ -17,8 +17,7 @@ import java.util.List;
 import java.util.Locale;
 
 @RestController
-@RequestMapping("/users")
-@CrossOrigin
+@RequestMapping("/api/v1/users")
 public class UsersController {
     private final UserCommandService commandService;
     private final UserQueryService queryService;

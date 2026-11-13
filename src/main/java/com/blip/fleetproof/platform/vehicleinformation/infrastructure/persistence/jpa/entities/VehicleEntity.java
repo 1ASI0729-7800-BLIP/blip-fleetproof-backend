@@ -19,7 +19,7 @@ public class VehicleEntity extends AuditableAbstractPersistenceEntity {
     @Column(nullable = false, unique = true, length = 7) private String plate;
     @Column(nullable = false) private String brand;
     @Column(nullable = false) private String model;
-    @Column(nullable = false) private Integer year;
+    @Column(name = "vehicle_year", nullable = false) private Integer year;
     @Column(nullable = false) private String responsible;
     @Column(nullable = false) private String vin = "";
     @Column(nullable = false) private String owner = "";
