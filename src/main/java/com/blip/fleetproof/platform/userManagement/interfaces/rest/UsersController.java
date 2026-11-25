@@ -2,13 +2,16 @@ package com.blip.fleetproof.platform.userManagement.interfaces.rest;
 
 import com.blip.fleetproof.platform.userManagement.domain.model.commands.CreateUserCommand;
 import com.blip.fleetproof.platform.userManagement.domain.model.commands.UpdateUserProfileCommand;
+import com.blip.fleetproof.platform.userManagement.domain.model.aggregates.User;
 import com.blip.fleetproof.platform.userManagement.domain.services.UserQueryService;
 import com.blip.fleetproof.platform.userManagement.domain.services.UserCommandService;
 import com.blip.fleetproof.platform.userManagement.domain.model.valueobjects.AccountType;
 import com.blip.fleetproof.platform.userManagement.interfaces.rest.resources.CreateUserResource;
 import com.blip.fleetproof.platform.userManagement.interfaces.rest.resources.UpdateUserResource;
 import com.blip.fleetproof.platform.userManagement.interfaces.rest.resources.UserResource;
+import com.blip.fleetproof.platform.userManagement.interfaces.rest.resources.SignInResource;
 import com.blip.fleetproof.platform.userManagement.interfaces.rest.transform.UserResourceAssembler;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -38,10 +41,18 @@ public class UsersController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResource create(@RequestBody CreateUserResource resource) {
+    public UserResource create(@Valid @RequestBody CreateUserResource resource) {
         return assembler.toResource(commandService.handle(new CreateUserCommand(
                 resource.name(), resource.email(), resource.organization(), parseAccountType(resource.accountType()),
                 resource.passwordHash())));
+    }
+
+    @PostMapping("/sign-in")
+    public UserResource signIn(@Valid @RequestBody SignInResource resource) {
+        User user = queryService.handle(resource.email())
+                .filter(candidate -> candidate.getPasswordHash().equals(resource.passwordHash()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+        return assembler.toResource(user);
     }
 
     @PatchMapping("/{id}")
