@@ -10,7 +10,6 @@ import java.util.Locale;
 public class UserResourceAssembler {
     public UserResource toResource(User user) {
         return new UserResource(user.getId(), user.getName(), user.getEmail(),
-                user.getOrganization(), user.getAccountType().name().toLowerCase(Locale.ROOT),
-                user.getPasswordHash());
+                user.getOrganization(), user.getAccountType().name().toLowerCase(Locale.ROOT));
     }
 }
