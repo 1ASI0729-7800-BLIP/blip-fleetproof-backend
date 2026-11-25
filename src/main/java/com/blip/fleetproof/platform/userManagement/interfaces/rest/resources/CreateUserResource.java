@@ -1,10 +1,13 @@
 package com.blip.fleetproof.platform.userManagement.interfaces.rest.resources;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 public record CreateUserResource(
-        String name,
-        String email,
+        @NotBlank String name,
+        @NotBlank @Email String email,
         String organization,
         String accountType,
-        String passwordHash
+        @NotBlank String passwordHash
 ) {
 }
