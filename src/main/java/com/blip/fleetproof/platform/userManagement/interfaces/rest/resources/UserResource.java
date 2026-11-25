@@ -5,7 +5,6 @@ public record UserResource(
         String name,
         String email,
         String organization,
-        String accountType,
-        String passwordHash
+        String accountType
 ) {
 }
