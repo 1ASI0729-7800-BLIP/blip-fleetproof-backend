@@ -40,8 +40,8 @@ public class ResolutionCase extends AbstractDomainAggregateRoot<ResolutionCase> 
     public void update(String responsible, String dueDate, String status, String evidence, String notes) {
         this.responsible = required(responsible, "responsible");
         this.dueDate = required(dueDate, "dueDate");
-        if (!status.matches("open|in-progress|resolved")) throw new IllegalArgumentException("status is invalid");
-        if (status.equals("resolved") && (evidence == null || evidence.isBlank()))
+        if (!status.matches("open|in-progress|resolved|closed")) throw new IllegalArgumentException("status is invalid");
+        if ((status.equals("resolved") || status.equals("closed")) && (evidence == null || evidence.isBlank()))
             throw new IllegalArgumentException("evidence is required to resolve a case");
         this.status = status; this.evidence = evidence == null ? "" : evidence.trim();
         this.notes = notes == null ? "" : notes.trim();

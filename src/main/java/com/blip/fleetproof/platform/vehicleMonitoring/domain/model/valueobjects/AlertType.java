@@ -4,5 +4,7 @@ public enum AlertType {
     /** A monitoring cycle found new documentary findings. */
     DOCUMENTARY,
     /** A monitoring cycle could not complete all source checks. */
-    TECHNICAL
+    TECHNICAL,
+    /** A mobile or physical IoT device detected an operational vehicle risk. */
+    TELEMETRY
 }

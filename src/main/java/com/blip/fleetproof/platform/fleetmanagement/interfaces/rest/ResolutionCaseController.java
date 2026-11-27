@@ -13,10 +13,23 @@ import java.util.List;
 @RestController @RequestMapping("/api/v1/cases")
 public class ResolutionCaseController {
     private final ResolutionCaseApplicationService service;
-    public ResolutionCaseController(ResolutionCaseApplicationService service) { this.service = service; }
+    private final com.blip.fleetproof.platform.fleetmanagement.application.internal.CaseWorkflowService workflow;
+    public ResolutionCaseController(ResolutionCaseApplicationService service,
+                                    com.blip.fleetproof.platform.fleetmanagement.application.internal.CaseWorkflowService workflow) {
+        this.service = service; this.workflow = workflow;
+    }
     @GetMapping public List<CaseResource> all(@RequestParam(required = false) Long userId) { return service.findAll(userId).stream().map(CaseResource::from).toList(); }
     @PostMapping @ResponseStatus(HttpStatus.CREATED) public CaseResource create(@Valid @RequestBody CaseRequest r) { return CaseResource.from(service.create(r.domain())); }
     @PutMapping("/{id}") public CaseResource update(@PathVariable Long id, @Valid @RequestBody CaseRequest r) { return CaseResource.from(service.update(id, r.domain())); }
+    @GetMapping("/{id}/activities")
+    public List<com.blip.fleetproof.platform.fleetmanagement.application.internal.CaseWorkflowService.ActivityResource> activities(
+            @PathVariable Long id) { return workflow.findAll(id); }
+    @PostMapping("/{id}/activities") @ResponseStatus(HttpStatus.CREATED)
+    public com.blip.fleetproof.platform.fleetmanagement.application.internal.CaseWorkflowService.ActivityResource addActivity(
+            @PathVariable Long id,
+            @RequestBody com.blip.fleetproof.platform.fleetmanagement.application.internal.CaseWorkflowService.ActivityRequest request) {
+        return workflow.record(id, request);
+    }
     public record CaseRequest(@NotNull @Positive Long userId, @NotNull @Positive Long vehicleId, Long reportId,
                               @NotBlank String findingId, @NotBlank String title, @NotBlank String responsible,
                               @NotBlank String dueDate, @NotBlank String status, String evidence, String notes,
