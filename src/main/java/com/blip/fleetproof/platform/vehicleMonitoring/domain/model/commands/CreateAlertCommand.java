@@ -23,7 +23,8 @@ public record CreateAlertCommand(
     public CreateAlertCommand {
         if (userId == null || userId <= 0) throw new IllegalArgumentException("userId must be a positive number");
         if (vehicleId == null || vehicleId <= 0) throw new IllegalArgumentException("vehicleId must be a positive number");
-        if (reportId == null || reportId <= 0) throw new IllegalArgumentException("reportId must be a positive number");
+        if (reportId == null || reportId < 0)
+            throw new IllegalArgumentException("reportId must not be negative; telemetry alerts use zero");
         if (type == null) throw new IllegalArgumentException("type is required");
         if (raisedAt == null) throw new IllegalArgumentException("createdAt is required");
         if (messageKey == null || messageKey.isBlank()) throw new IllegalArgumentException("messageKey is required");

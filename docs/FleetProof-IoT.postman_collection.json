@@ -1,0 +1,98 @@
+{
+  "info": {
+    "name": "FleetProof IoT End-to-End Demo",
+    "description": "Demonstrates device registration, normal and anomalous telemetry, alert creation, incident workflow, escalation, resolution and closure. Create a user, fleet and vehicle first, then set userId and vehicleId.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api/v1" },
+    { "key": "userId", "value": "1" },
+    { "key": "vehicleId", "value": "1" },
+    { "key": "deviceId", "value": "PHONE-DEMO-01" },
+    { "key": "alertId", "value": "" },
+    { "key": "caseId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 - Register IoT device and configurable thresholds",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/telemetry-devices",
+        "body": { "mode": "raw", "raw": "{\n  \"deviceId\": \"{{deviceId}}\",\n  \"vehicleId\": {{vehicleId}},\n  \"name\": \"Postman IoT Simulator\",\n  \"active\": true,\n  \"minimumTemperatureCelsius\": 70,\n  \"maximumTemperatureCelsius\": 105,\n  \"maximumSpeedKph\": 100,\n  \"minimumBatteryVoltage\": 11.8\n}" }
+      }
+    },
+    {
+      "name": "02 - Send normal measurement",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/telemetry-readings",
+        "body": { "mode": "raw", "raw": "{\n  \"vehicleId\": {{vehicleId}},\n  \"deviceId\": \"{{deviceId}}\",\n  \"recordedAt\": \"2026-11-27T20:00:00Z\",\n  \"latitude\": -12.0464,\n  \"longitude\": -77.0428,\n  \"locationAccuracyMeters\": 6,\n  \"gpsSpeedKph\": 40,\n  \"headingDegrees\": 90,\n  \"sessionDistanceKm\": 1.2,\n  \"accelerationMagnitude\": 1.1,\n  \"harshMovementDetected\": false,\n  \"engineTemperatureCelsius\": 88,\n  \"vehicleBatteryVoltage\": 12.4,\n  \"engineRpm\": 1800,\n  \"locationSource\": \"DEVICE_SENSOR\",\n  \"motionSource\": \"DEVICE_SENSOR\",\n  \"engineDataSource\": \"SIMULATED\"\n}" }
+      }
+    },
+    {
+      "name": "03 - Send abnormal temperature and capture incident",
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "const body = pm.response.json();",
+          "pm.collectionVariables.set('alertId', body.alertId);",
+          "pm.collectionVariables.set('caseId', body.resolutionCaseId);",
+          "pm.test('Critical alert and incident were created', () => { pm.expect(body.critical).to.eql(true); pm.expect(body.alertId).to.be.a('number'); pm.expect(body.resolutionCaseId).to.be.a('number'); });"
+        ] }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/telemetry-readings",
+        "body": { "mode": "raw", "raw": "{\n  \"vehicleId\": {{vehicleId}},\n  \"deviceId\": \"{{deviceId}}\",\n  \"recordedAt\": \"2026-11-27T20:01:00Z\",\n  \"latitude\": -12.0464,\n  \"longitude\": -77.0428,\n  \"locationAccuracyMeters\": 6,\n  \"gpsSpeedKph\": 45,\n  \"headingDegrees\": 90,\n  \"sessionDistanceKm\": 1.4,\n  \"accelerationMagnitude\": 1.1,\n  \"harshMovementDetected\": false,\n  \"engineTemperatureCelsius\": 112,\n  \"vehicleBatteryVoltage\": 12.4,\n  \"engineRpm\": 3400,\n  \"locationSource\": \"DEVICE_SENSOR\",\n  \"motionSource\": \"DEVICE_SENSOR\",\n  \"engineDataSource\": \"SIMULATED\"\n}" }
+      }
+    },
+    {
+      "name": "04 - Send overspeed measurement",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/telemetry-readings",
+        "body": { "mode": "raw", "raw": "{\n  \"vehicleId\": {{vehicleId}},\n  \"deviceId\": \"{{deviceId}}\",\n  \"recordedAt\": \"2026-11-27T20:02:00Z\",\n  \"latitude\": -12.045,\n  \"longitude\": -77.041,\n  \"locationAccuracyMeters\": 8,\n  \"gpsSpeedKph\": 115,\n  \"headingDegrees\": 90,\n  \"sessionDistanceKm\": 2.1,\n  \"accelerationMagnitude\": 2,\n  \"harshMovementDetected\": false,\n  \"engineTemperatureCelsius\": 90,\n  \"vehicleBatteryVoltage\": 12.3,\n  \"engineRpm\": 3100,\n  \"locationSource\": \"DEVICE_SENSOR\",\n  \"motionSource\": \"DEVICE_SENSOR\",\n  \"engineDataSource\": \"SIMULATED\"\n}" }
+      }
+    },
+    { "name": "05 - List registered readings", "request": { "method": "GET", "url": "{{baseUrl}}/telemetry-readings?vehicleId={{vehicleId}}&limit=50" } },
+    { "name": "06 - List generated alerts", "request": { "method": "GET", "url": "{{baseUrl}}/alerts?userId={{userId}}" } },
+    { "name": "07 - List generated incidents", "request": { "method": "GET", "url": "{{baseUrl}}/cases?userId={{userId}}" } },
+    {
+      "name": "08 - Record driver contact without response",
+      "request": {
+        "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/cases/{{caseId}}/activities",
+        "body": { "mode": "raw", "raw": "{\n  \"actorId\": {{userId}},\n  \"action\": \"DRIVER_NO_RESPONSE\",\n  \"description\": \"The operator called the driver twice but received no response.\"\n}" }
+      }
+    },
+    {
+      "name": "09 - Escalate incident to supervisor",
+      "request": {
+        "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/cases/{{caseId}}/activities",
+        "body": { "mode": "raw", "raw": "{\n  \"actorId\": {{userId}},\n  \"action\": \"ESCALATE\",\n  \"description\": \"Escalated because the driver did not respond.\",\n  \"responsible\": \"Fleet Supervisor\"\n}" }
+      }
+    },
+    {
+      "name": "10 - Resolve incident",
+      "request": {
+        "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/cases/{{caseId}}/activities",
+        "body": { "mode": "raw", "raw": "{\n  \"actorId\": {{userId}},\n  \"action\": \"RESOLVE\",\n  \"description\": \"Vehicle stopped safely; cooling system inspected and temperature returned to normal.\"\n}" }
+      }
+    },
+    {
+      "name": "11 - Close incident",
+      "request": {
+        "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/cases/{{caseId}}/activities",
+        "body": { "mode": "raw", "raw": "{\n  \"actorId\": {{userId}},\n  \"action\": \"CLOSE\",\n  \"description\": \"Supervisor verified the evidence and closed the incident.\"\n}" }
+      }
+    },
+    { "name": "12 - Consult complete incident history", "request": { "method": "GET", "url": "{{baseUrl}}/cases/{{caseId}}/activities" } }
+  ]
+}
